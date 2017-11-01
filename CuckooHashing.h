@@ -62,27 +62,20 @@ static long double SIMDProbeTime, SIMDInsertTime, LinearProbeTime, LinearInsertT
      (see Knuth)
   */
 
-  //Setting multipliers id there are only 2 functions
   void setM(){
     m.ui[0] = 1300000077;
     m.ui[2] = 1145678917;
 
     m0 = m.v;
-
-    //Table size inserted to perform multiplication
     tbsize = _mm_set_epi32(HSIZE,HSIZE,HSIZE,HSIZE);  
   }
   
 
-
-//SIMD Hashing function
-__inline __m128i hash(__m128i k)
+__m128i hash(__m128i k)
 {
   __m128i h;
 
-      /* 
-	 Use 32-bit multiplies to compute 2 hash values at a time
-      */
+
   h = _mm_mul_epu32(m0,k);  // hash values are in slots 0 and 2 
   // now multiply by table size; don't need to zero out parts of h.v because mult only looks at lower 32 bits
 
@@ -181,7 +174,7 @@ int SIMDinsert(unsigned int searchKey){
 
 }
 
-__inline int SIMDprobe(unsigned int key)
+int SIMDprobe(unsigned int key)
 {
   int i;
   int foffset0,foffset1;

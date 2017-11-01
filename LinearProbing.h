@@ -56,7 +56,7 @@ void print128_num(__m128i var){
 
 }
 
-__inline int VectorProbe(unsigned int key){
+int VectorProbe(unsigned int key){
   SIMDProbeBegin = clock();
   //Hash the key
   unsigned int foffset = hash(key);
@@ -113,7 +113,7 @@ __inline int VectorProbe(unsigned int key){
 
 
 //Linear Probing starts here
-__inline int ScalarProbe(unsigned int key){
+int ScalarProbe(unsigned int key){
   LinearProbeBegin = clock();
   //Hash the key
   unsigned int foffset = hash(key);
