@@ -14,7 +14,7 @@ typedef union {
 
 #define KEYSPERPAGE 1 
 #define REPEATS 2 
-#define HSIZE 3300000
+#define HSIZE 33000000
 
 //Clock Variables
 
@@ -41,7 +41,8 @@ typedef entry4 entry;
 typedef entry8 entry;
 #endif
 
-entry hashtable[HSIZE] __attribute__ ((aligned (128)));;
+__m128i hashkeys[HSIZE] __attribute__ ((aligned (128)));;
+__m128i hashpayloads[HSIZE] __attribute__ ((aligned (128)));;
 
 void print128_num(__m128i var){
     int *val = (int*) &var;
@@ -56,7 +57,7 @@ void print128_num(__m128i var){
 
 }
 
-int VectorProbe(unsigned int key){
+__inline int VectorProbe(unsigned int key){
   SIMDProbeBegin = clock();
   //Hash the key
   unsigned int foffset = hash(key);
@@ -67,7 +68,7 @@ int VectorProbe(unsigned int key){
 
   while(foffset<HSIZE){
   //Get the values of the offset into registers
-    slot = hashtable[foffset].keys;
+    slot = hashkeys[foffset];
 
     //Key value replicated into SIMD registers
     k = _mm_set_epi32(key,key,key,key);
@@ -80,7 +81,7 @@ int VectorProbe(unsigned int key){
     if(_mm_movemask_epi8(tmp)){
       
       //Add to Payload
-      hashtable[foffset].payloads = _mm_sub_epi32(hashtable[foffset].payloads,tmp);      
+      hashpayloads[foffset] = _mm_sub_epi32(hashpayloads[foffset] ,tmp);      
       return 1;
     }
     
@@ -91,12 +92,12 @@ int VectorProbe(unsigned int key){
       
       //Insert values
       //shift the values
-      hashtable[foffset].payloads = _mm_bslli_si128(hashtable[foffset].payloads,4);
-      hashtable[foffset].keys = _mm_bslli_si128(hashtable[foffset].keys,4);
+      hashpayloads[foffset] = _mm_bslli_si128(hashpayloads[foffset],4);
+      hashkeys[foffset] = _mm_bslli_si128(hashkeys[foffset],4);
       
       //Place the key in first position
-      int *valkey = (int*) &hashtable[foffset].keys;
-      int *val = (int*) &hashtable[foffset].payloads;
+      int *valkey = (int*) &hashkeys[foffset];
+      int *val = (int*) &hashpayloads[foffset];
       val[0] = 1;
       valkey[0] = key;
       SIMDProbeEnd = clock();
@@ -113,19 +114,18 @@ int VectorProbe(unsigned int key){
 
 
 //Linear Probing starts here
-int ScalarProbe(unsigned int key){
+__inline int ScalarProbe(unsigned int key){
   LinearProbeBegin = clock();
   //Hash the key
   unsigned int foffset = hash(key);
-  //printf("%d\n",foffset);  
 
   int count =0;
 
   while(foffset<HSIZE){
     
     //Get the values of the offset 
-    int *valkey = (int*) &hashtable[foffset].keys;
-    int *val = (int*) &hashtable[foffset].payloads;
+    int *valkey = (int*) &hashkeys[foffset];
+    int *val = (int*) &hashpayloads[foffset];
     int i;
 
     //Compare the values and add to payload
@@ -144,8 +144,7 @@ int ScalarProbe(unsigned int key){
       //shift the values
       //Place the key in first position  
       //Moving payload
-      // index = 4;
-      // bucket = index%4;
+      
       val[3] = val[2];
       val[2] = val[1];
       val[1] = val[0];
@@ -171,8 +170,8 @@ void HashLookup(){
   int j;
  // printf("|-------------------------------|\n");
   for(j=0;j<HSIZE;j++){
-   __m128i keys =  hashtable[j].keys;
-   __m128i payloads =  hashtable[j].payloads;
+   __m128i keys =  hashkeys[j];
+   __m128i payloads =  hashpayloads[j];
    printf("|-------------------------------|\n|");
    print128_num(keys);
    printf("\t|\n|");
@@ -186,7 +185,7 @@ int hashCheck(){
   int count = 0;
   int j;
   for(j=0;j<HSIZE;j++){
-   int *keys =  (int*) &hashtable[j].keys;
+   int *keys =  (int*) &hashkeys[j];
    if(keys[0]!=0)
       count++;
     if(keys[1]!=0)
@@ -203,7 +202,7 @@ int addValues(){
   int count = 0;
   int j;
   for(j=0;j<HSIZE;j++){
-   int *keys =  (int*) &hashtable[j].payloads;
+   int *keys =  (int*) &hashpayloads[j];
    if(keys[0]!=0)
       count+=keys[0];
     if(keys[1]!=0)
@@ -221,8 +220,8 @@ int addValues(){
 void clearHash(){
   int j;
   for(j=0;j<HSIZE;j++){
-    int *payload =  (int*) &hashtable[j].payloads;
-    int *key =  (int*) &hashtable[j].keys;
+    int *payload =  (int*) &hashpayloads[j];
+    int *key =  (int*) &hashkeys[j];
     payload[0] = 0;
     payload[1] = 0;
     payload[2] = 0;

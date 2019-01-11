@@ -3,31 +3,29 @@
 #include <sys/time.h>
 #include <time.h>
 #include "distribution.h"
-#include "LinearProbing.h"
-
-__attribute__((optimize("no-tree-vectorize")))
+#include "HopscotchHashing.h"
 
 int  main(int argc, char** argv){
 	
 	short DistributionType=0;
 	int dataSize;
 	int insertValue; 
-	int initialSize = 500000;
-	int totalSize = 5000000;
+	int initialSize = 5;
+	int totalSize = 100;
 	int iteration;
-/*
-Linear Linear Probing Evalution
-*/
 
-for(iteration=0;iteration<5;iteration++){
-	printf("\nScalar Linear Probing\n");
+
+//setM();
+for(iteration=0;iteration<1;iteration++)
+{
+	printf("\nLinear hopscotch hashing\n");
 
 	DistributionType=0;
 	clearHash();
 	clearClocks();
 
-		while(DistributionType<4){
-			switch(DistributionType){
+		while(DistributionType<6){
+switch(DistributionType){
 
 				case 0 :	printf("\nDense Unique Random Values\n");
 							break;
@@ -37,15 +35,18 @@ for(iteration=0;iteration<5;iteration++){
 							break;
 				case 3 :	printf("\nExponential Values\n"); 
 							break;
-			}
-			
-			printf("Datasize\tunique\ttotal\tscalar probing\n");
+				case 4 : 	printf("\nZipf law Values\n");
+							break;
+				case 5 : 	printf("\nSelf Similar law Values\n");
+							break;							
+			}			
+			printf("Datasize\tunique\ttotal\tscalar probing\tscalar insertion\n");
 
 			for(dataSize=initialSize;dataSize<totalSize;dataSize+=initialSize){		
 				
 				int i;
 				setGen(dataSize); //Initialize generation Size
-				
+				//set_hsize(dataSize/4+1);				
 				switch(DistributionType){ //Populate with values
 
 					case 0:	
@@ -53,33 +54,45 @@ for(iteration=0;iteration<5;iteration++){
 							InitDenseUnique();
 							for(i=0;i<dataSize;i++){
 								insertValue = DenseUniqueRandom();
-								ScalarProbe(insertValue);
+								LinearProbeInsert(insertValue);
 							}
 							break;
 
 					case 1: 
 							for(i=0;i<dataSize;i++){
 								insertValue = SequentialNumbers(5);
-								ScalarProbe(insertValue);
+								LinearProbeInsert(insertValue);
 							}
 							break;
 
 					case 2: 
 							for(i=0;i<dataSize;i++){
 								insertValue = UniformRandom();
-								ScalarProbe(insertValue);
+								LinearProbeInsert(insertValue);
 							}
 							break;
 
-					default:	
+					case 3:	
 								for(i=0;i<dataSize;i++){
 									insertValue = Exponential();
-									ScalarProbe(insertValue);
+									LinearProbeInsert(insertValue);
 								}
 								break;
+					case 4:	
+								for(i=0;i<dataSize;i++){
+									insertValue = zipf(1000,0.6);
+									LinearProbeInsert(insertValue);
+								}
+								break;
+					default:	
+								for(i=0;i<dataSize;i++){
+									insertValue = selfsimilar(25,0.1);
+									LinearProbeInsert(insertValue);
+								}
+								break;								
 
 				}
-				printf("%d\t%d\t%d\t%Lf\n",dataSize,hashCheck(),addValues(), getScalarTime());
+				printf("%d\t%d\t%d\t%Lf\t%Lf\t%d\n",dataSize,hashCheck(),addValues(), getLinearProbeTime(), getLinearTime(),DistributionType);
 				clearHash();
 				clearClocks();
 			}
@@ -90,15 +103,15 @@ for(iteration=0;iteration<5;iteration++){
 
 
 	/*
-	SIMD Cuckoo hasing evaluation
+	SIMD Hopscotch hasing evaluation
 	*/
-	printf("\nSIMD cuckoo hashing\n");
+	printf("\nSIMD Hopscotch hashing\n");
 
 	DistributionType=0;
 	clearHash();
 	clearClocks();
 
-	while(DistributionType<4){
+	while(DistributionType<6){
 			switch(DistributionType){
 
 				case 0 :	printf("\nDense Unique Random Values\n");
@@ -109,9 +122,13 @@ for(iteration=0;iteration<5;iteration++){
 							break;
 				case 3 :	printf("\nExponential Values\n"); 
 							break;
+				case 4 : 	printf("\nZipf law Values\n");
+							break;
+				case 5 : 	printf("\nSelf Similar law Values\n");
+							break;							
 			}
 			
-			printf("Datasize\tunique\ttotal\tSIMD probing\n");
+			printf("Datasize\tunique\ttotal\tSIMD probing\tSIMD insertion\n");
 
 			for(dataSize=initialSize;dataSize<totalSize;dataSize+=initialSize){	
 				
@@ -125,33 +142,45 @@ for(iteration=0;iteration<5;iteration++){
 							InitDenseUnique();
 							for(i=0;i<dataSize;i++){
 								insertValue = DenseUniqueRandom();
-								VectorProbe(insertValue);
+								SIMDProbeInsert(insertValue);
 							}
 							break;
 
 					case 1: 
 							for(i=0;i<dataSize;i++){
 								insertValue = SequentialNumbers(5);
-								VectorProbe(insertValue);
+								SIMDProbeInsert(insertValue);
 							}
 							break;
 
 					case 2: 
 							for(i=0;i<dataSize;i++){
 								insertValue = UniformRandom();
-								VectorProbe(insertValue);
+								SIMDProbeInsert(insertValue);
 							}
 							break;
 
-					default:	
+					case 3:	
 								for(i=0;i<dataSize;i++){
 									insertValue = Exponential();
-									VectorProbe(insertValue);
+									SIMDProbeInsert(insertValue);
 								}
 								break;
+					case 4:	
+								for(i=0;i<dataSize;i++){
+									insertValue = zipf(1000,0.6);
+									SIMDProbeInsert(insertValue);
+								}
+								break;
+					default:	
+								for(i=0;i<dataSize;i++){
+									insertValue = selfsimilar(25,0.1);
+									SIMDProbeInsert(insertValue);
+								}
+								break;									
 
 				}
-				printf("%d\t%d\t%d\t%Lf\n",dataSize,hashCheck(),addValues(), getSIMDTime());
+				printf("%d\t%d\t%d\t%Lf\t%Lf\t%d\n",dataSize,hashCheck(),addValues(), getSIMDProbeTime(), getSIMDTime(),DistributionType);
 				clearHash();
 				clearClocks();
 			}
@@ -159,7 +188,5 @@ for(iteration=0;iteration<5;iteration++){
 			DistributionType++;
 
 		}
-
 	}
-
 }

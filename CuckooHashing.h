@@ -17,6 +17,7 @@
 #include <smmintrin.h>
 #include <sys/types.h>
 #include <sys/time.h>
+#include <time.h>
 #include <sys/wait.h>
 #include <stdint.h>
 #include <inttypes.h>
@@ -32,10 +33,11 @@
 
 #define KEYSPERPAGE 1 //1000
 #define REPEATS 2 //500000
-#define HSIZE 33000000
+#define HSIZE 330000
 #define HASHFUNCTIONS 2
 #define BFACTOR 4
 
+int LinearInsert(unsigned int searchKey);
 //  The following constants must be defined on compilation
 //HSIZE max number of entries in the splash table
 //HASHFUNCTIONS number of hash functions used, between 2 and 4
@@ -106,7 +108,7 @@ typedef entry4 entry;
 typedef entry8 entry;
 #endif
 
-entry hashtable[HSIZE] __attribute__ ((aligned (128)));;
+entry hashtable[HSIZE] __attribute__ ((aligned (128)));
 
 #if (HSIZE <= 65536)
 #define kextract(hvec,size) _mm_extract_epi16(hvec,size)

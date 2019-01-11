@@ -3,7 +3,7 @@
 #include <sys/time.h>
 #include <time.h>
 #include "distribution.h"
-#include "LinearProbing.h"
+#include "2ChoiceHashing.h"
 
 __attribute__((optimize("no-tree-vectorize")))
 
@@ -12,21 +12,21 @@ int  main(int argc, char** argv){
 	short DistributionType=0;
 	int dataSize;
 	int insertValue; 
-	int initialSize = 500000;
-	int totalSize = 5000000;
+	int initialSize = 50000;
+	int totalSize = 500000;
 	int iteration;
 /*
 Linear Linear Probing Evalution
 */
-
-for(iteration=0;iteration<5;iteration++){
-	printf("\nScalar Linear Probing\n");
+setM();
+for(iteration=0;iteration<20;iteration++){
+	printf("\nScalar 2Choice hashing\n");
 
 	DistributionType=0;
 	clearHash();
 	clearClocks();
 
-		while(DistributionType<4){
+		while(DistributionType<6){
 			switch(DistributionType){
 
 				case 0 :	printf("\nDense Unique Random Values\n");
@@ -36,6 +36,10 @@ for(iteration=0;iteration<5;iteration++){
 				case 2 :	printf("\nUniform Random Values\n"); 
 							break;
 				case 3 :	printf("\nExponential Values\n"); 
+							break;
+				case 4 : 	printf("\nZipf law Values\n");
+							break;
+				case 5 : 	printf("\nSelf Similar law Values\n");
 							break;
 			}
 			
@@ -71,9 +75,21 @@ for(iteration=0;iteration<5;iteration++){
 							}
 							break;
 
-					default:	
+					case 3:	
 								for(i=0;i<dataSize;i++){
 									insertValue = Exponential();
+									ScalarProbe(insertValue);
+								}
+								break;
+					case 4:	
+								for(i=0;i<dataSize;i++){
+									insertValue = zipf(1000,0.6);
+									ScalarProbe(insertValue);
+								}
+								break;
+					default:	
+								for(i=0;i<dataSize;i++){
+									insertValue = selfsimilar(25,0.1);
 									ScalarProbe(insertValue);
 								}
 								break;
@@ -90,15 +106,15 @@ for(iteration=0;iteration<5;iteration++){
 
 
 	/*
-	SIMD Cuckoo hasing evaluation
+	SIMD 2Choice hasing evaluation
 	*/
-	printf("\nSIMD cuckoo hashing\n");
+	printf("\nSIMD 2Choice hashing\n");
 
 	DistributionType=0;
 	clearHash();
 	clearClocks();
 
-	while(DistributionType<4){
+	while(DistributionType<6){
 			switch(DistributionType){
 
 				case 0 :	printf("\nDense Unique Random Values\n");
@@ -108,6 +124,10 @@ for(iteration=0;iteration<5;iteration++){
 				case 2 :	printf("\nUniform Random Values\n"); 
 							break;
 				case 3 :	printf("\nExponential Values\n"); 
+							break;
+				case 4 : 	printf("\nZipf law Values\n");
+							break;
+				case 5 : 	printf("\nSelf Similar law Values\n");
 							break;
 			}
 			
@@ -143,9 +163,21 @@ for(iteration=0;iteration<5;iteration++){
 							}
 							break;
 
-					default:	
+					case 3:	
 								for(i=0;i<dataSize;i++){
 									insertValue = Exponential();
+									VectorProbe(insertValue);
+								}
+								break;
+					case 4:	
+								for(i=0;i<dataSize;i++){
+									insertValue = zipf(1000,0.6);
+									VectorProbe(insertValue);
+								}
+								break;
+					default:	
+								for(i=0;i<dataSize;i++){
+									insertValue = selfsimilar(25,0.1);
 									VectorProbe(insertValue);
 								}
 								break;

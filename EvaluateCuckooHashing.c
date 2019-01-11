@@ -9,8 +9,8 @@ int  main(int argc, char** argv){
 	short DistributionType=0;
 	int dataSize;
 	int insertValue; 
-	int initialSize = 5000000;
-	int totalSize = 50000000;
+	int initialSize = 5000;
+	int totalSize = 50000;
 	int iteration;
 /*	
 Linear Cuckoo hashing Evalution

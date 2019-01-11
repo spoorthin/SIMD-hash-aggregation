@@ -69,6 +69,30 @@ int DenseUniqueRandom(){
 
 }
 
+double zeta(double n,double theta)
+{
+	int i; long ans =0;
+	for (i=1;i<=n;i++) ans =+ pow(1/n,theta);
+}
+
+long zipf(long n,double theta)
+{
+	double alpha = 1/ (1-theta);
+	double zetan = zeta(n, theta);
+	double eta = (1 - pow(2.0 / n, 1 - theta)) /
+		     (1 - zeta(theta, 2) / zetan);
+	double u = rand();
+	double uz = u* zetan;
+	if(uz < 1) return 1;
+	if(uz < 1 + pow(0.5, theta)) return 2;
+	return 1 + (long)(n * pow(eta*u - eta + 1, alpha)); 
+}
+
+
+long selfsimilar(long N, double h)
+{
+	return (1 + (long) (N * pow(rand(),log(h)/log(1.0-h)))); 
+}
 
 //Keys are sequential. Upperbound = genSize. This can be extended to provided  progressive sequence
 int SequentialNumbers(int multiplier){
